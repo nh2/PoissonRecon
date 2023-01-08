@@ -498,7 +498,7 @@ int _Execute( int argc , char* argv[] )
 		iXForm = xForm.inverse();
 		delete pointStream;
 #pragma omp parallel for num_threads( Threads.value )
-		for( int i=0 ; i<(int)samples->size() ; i++ ) (*samples)[i].sample.data.n *= (Real)-1;
+		for( size_t i=0 ; i<samples->size() ; i++ ) (*samples)[i].sample.data.n *= (Real)-1;
 
 		DumpOutput( "Input Points / Samples: %d / %d\n" , pointCount , samples->size() );
 		profiler.dumpOutput2( comments , "# Read input into tree:" );
@@ -532,7 +532,7 @@ int _Execute( int argc , char* argv[] )
 		// Trim the tree and prepare for multigrid
 		{
 			profiler.start();
-			std::vector< int > indexMap;
+			std::vector< int64_t > indexMap;
 
 			constexpr int MAX_DEGREE = NORMAL_DEGREE > Degree ? NORMAL_DEGREE : Degree;
 			tree.template inalizeForBroodedMultigrid< MAX_DEGREE , Degree , BType >( FullDepth.value , typename Octree< Real >::template HasNormalDataFunctor< NORMAL_DEGREE >( *normalInfo ) , &indexMap );

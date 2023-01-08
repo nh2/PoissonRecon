@@ -380,7 +380,7 @@ SparseNodeData< ProjectiveData< Data , Real > , DataDegree > Octree< Real >::set
 }
 template< class Real >
 template< int MaxDegree , int FEMDegree , BoundaryType FEMBType , class HasDataFunctor >
-void Octree< Real >::inalizeForBroodedMultigrid( LocalDepth fullDepth , const HasDataFunctor& F , std::vector< int >* map )
+void Octree< Real >::inalizeForBroodedMultigrid( LocalDepth fullDepth , const HasDataFunctor& F , std::vector< int64_t >* map )
 {
 	if( FEMDegree>MaxDegree ) fprintf( stderr , "[ERROR] MaxDegree must be at least as large as the FEM degree: %d <= %d\n" , FEMDegree , MaxDegree );
 	while( _localInset( 0 ) + BSplineEvaluationData< MaxDegree , BOUNDARY_FREE >::Begin( 0 )<0 || _localInset( 0 ) + BSplineEvaluationData< MaxDegree , BOUNDARY_FREE >::End( 0 )>(1<<_depthOffset) )

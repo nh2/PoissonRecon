@@ -41,7 +41,7 @@ SortedTreeNodes::~SortedTreeNodes( void )
 	FreePointer( _sliceStart );
 	DeletePointer( treeNodes );
 }
-void SortedTreeNodes::set( TreeOctNode& root , std::vector< int >* map )
+void SortedTreeNodes::set( TreeOctNode& root , std::vector< int64_t >* map )
 {
 	set( root );
 

@@ -77,7 +77,7 @@ public:
 		FEM_FLAG = 2 ,
 		GHOST_FLAG = 1<<7
 	};
-	int nodeIndex;
+	int64_t nodeIndex;
 	char flags;
 
 	void setGhostFlag( bool f ){ if( f ) flags |= GHOST_FLAG ; else flags &= ~GHOST_FLAG; }
@@ -127,7 +127,7 @@ public:
 
 	SortedTreeNodes( void );
 	~SortedTreeNodes( void );
-	void set( TreeOctNode& root , std::vector< int >* map );
+	void set( TreeOctNode& root , std::vector< int64_t >* map );
 	void set( TreeOctNode& root );
 
 	template< int Indices >
@@ -291,32 +291,32 @@ struct SparseNodeData
 	const Data& operator[] ( int idx ) const { return _data[idx]; }
 	Data& operator[] ( int idx ) { return _data[idx]; }
 	void reserve( size_t sz ){ if( sz>_indices.size() ) _indices.resize( sz , -1 ); }
-	Data* operator()( const OctNode< TreeNodeData >* node ){ return ( node->nodeData.nodeIndex<0 || node->nodeData.nodeIndex>=(int)_indices.size() || _indices[ node->nodeData.nodeIndex ]<0 ) ? NULL : &_data[ _indices[ node->nodeData.nodeIndex ] ]; }
-	const Data* operator()( const OctNode< TreeNodeData >* node ) const { return ( node->nodeData.nodeIndex<0 || node->nodeData.nodeIndex>=(int)_indices.size() || _indices[ node->nodeData.nodeIndex ]<0 ) ? NULL : &_data[ _indices[ node->nodeData.nodeIndex ] ]; }
+	Data* operator()( const OctNode< TreeNodeData >* node ){ return ( node->nodeData.nodeIndex<0 || node->nodeData.nodeIndex>=_indices.size() || _indices[ node->nodeData.nodeIndex ]<0 ) ? NULL : &_data[ _indices[ node->nodeData.nodeIndex ] ]; }
+	const Data* operator()( const OctNode< TreeNodeData >* node ) const { return ( node->nodeData.nodeIndex<0 || node->nodeData.nodeIndex>=_indices.size() || _indices[ node->nodeData.nodeIndex ]<0 ) ? NULL : &_data[ _indices[ node->nodeData.nodeIndex ] ]; }
 	Data& operator[]( const OctNode< TreeNodeData >* node )
 	{
-		if( node->nodeData.nodeIndex>=(int)_indices.size() ) _indices.resize( node->nodeData.nodeIndex+1 , -1 );
+		if( node->nodeData.nodeIndex>=_indices.size() ) _indices.resize( node->nodeData.nodeIndex+1 , -1 );
 		if( _indices[ node->nodeData.nodeIndex ]==-1 )
 		{
-			_indices[ node->nodeData.nodeIndex ] = (int)_data.size();
+			_indices[ node->nodeData.nodeIndex ] = _data.size();
 			_data.push_back( Data() );
 		}
 		return _data[ _indices[ node->nodeData.nodeIndex ] ];
 	}
-	void remapIndices( const std::vector< int >& map )
+	void remapIndices( const std::vector< int64_t >& map )
 	{
-		std::vector< int > temp = _indices;
+		std::vector< int64_t > temp = _indices;
 		_indices.resize( map.size() );
 		for( size_t i=0 ; i<map.size() ; i++ )
-			if( map[i]<(int)temp.size() ) _indices[i] = temp[ map[i] ];
+			if( map[i]<temp.size() ) _indices[i] = temp[ map[i] ];
 			else                          _indices[i] = -1;
 	}
 	template< class _Data , int _Degree > friend struct SparseNodeData;
 	template< class _Data , int _Degree >
 	void init( const SparseNodeData< _Data , _Degree >& snd ){ _indices = snd._indices , _data.resize( snd._data.size() ); }
-	void remove( const OctNode< TreeNodeData >* node ){ if( node->nodeData.nodeIndex<(int)_indices.size() && node->nodeData.nodeIndex>=0 ) _indices[ node->nodeData.nodeIndex ] = -1; }
+	void remove( const OctNode< TreeNodeData >* node ){ if( node->nodeData.nodeIndex<_indices.size() && node->nodeData.nodeIndex>=0 ) _indices[ node->nodeData.nodeIndex ] = -1; }
 protected:
-	std::vector< int > _indices;
+	std::vector< int64_t > _indices;
 	std::vector< Data > _data;
 };
 template< class Data , int Degree >
@@ -334,9 +334,9 @@ struct DenseNodeData
 	const Data& operator[] ( int idx ) const { return _data[idx]; }
 	size_t size( void ) const { return _sz; }
 	Data& operator[]( const OctNode< TreeNodeData >* node ) { return _data[ node->nodeData.nodeIndex ]; }
-	Data* operator()( const OctNode< TreeNodeData >* node ) { return ( node==NULL || node->nodeData.nodeIndex>=(int)_sz ) ? NULL : &_data[ node->nodeData.nodeIndex ]; }
-	const Data* operator()( const OctNode< TreeNodeData >* node ) const { return ( node==NULL || node->nodeData.nodeIndex>=(int)_sz ) ? NULL : &_data[ node->nodeData.nodeIndex ]; }
-	int index( const OctNode< TreeNodeData >* node ) const { return ( !node || node->nodeData.nodeIndex<0 || node->nodeData.nodeIndex>=(int)_data.size() ) ? -1 : node->nodeData.nodeIndex; }
+	Data* operator()( const OctNode< TreeNodeData >* node ) { return ( node==NULL || node->nodeData.nodeIndex>=_sz ) ? NULL : &_data[ node->nodeData.nodeIndex ]; }
+	const Data* operator()( const OctNode< TreeNodeData >* node ) const { return ( node==NULL || node->nodeData.nodeIndex>=_sz ) ? NULL : &_data[ node->nodeData.nodeIndex ]; }
+	int index( const OctNode< TreeNodeData >* node ) const { return ( !node || node->nodeData.nodeIndex<0 || node->nodeData.nodeIndex>=_data.size() ) ? -1 : node->nodeData.nodeIndex; }
 protected:
 	size_t _sz;
 	void _resize( size_t sz ){ DeletePointer( _data ) ; if( sz ) _data = NewPointer< Data >( sz ) ; else _data = NullPointer( Data ) ; _sz = sz; }
@@ -419,7 +419,7 @@ template< class Real >
 class Octree
 {
 	typedef OctNode< TreeNodeData > TreeOctNode;
-	static int _NodeCount;
+	static int64_t _NodeCount;
 	static void _NodeInitializer( TreeOctNode& node ){ node.nodeData.nodeIndex = _NodeCount++; }
 public:
 #if 0
@@ -445,7 +445,7 @@ public:
 #endif
 
 	static void ResetNodeCount( void ){ _NodeCount = 0 ; }
-	static int NodeCount( void ){ return _NodeCount; }
+	static int64_t NodeCount( void ){ return _NodeCount; }
 	template< int FEMDegree , BoundaryType BType > void functionIndex( const TreeOctNode* node , int idx[3] ) const;
 
 	struct PointSample{ const TreeOctNode* node ; ProjectiveData< OrientedPoint3D< Real > , Real > sample; };
@@ -894,7 +894,7 @@ public:
 	SparseNodeData< Point3D< Real > , NormalDegree > setNormalField( const std::vector< PointSample >& samples , const DensityEstimator< DensityDegree >& density , Real& pointWeightSum , bool forceNeumann );
 	template< int DataDegree , bool CreateNodes , int DensityDegree , class Data >
 	SparseNodeData< ProjectiveData< Data , Real > , DataDegree > setDataField( const std::vector< PointSample >& samples , std::vector< ProjectiveData< Data , Real > >& sampleData , const DensityEstimator< DensityDegree >* density );
-	template< int MaxDegree , int FEMDegree , BoundaryType FEMBType , class HasDataFunctor > void inalizeForBroodedMultigrid( LocalDepth fullDepth , const HasDataFunctor& F , std::vector< int >* map=NULL );
+	template< int MaxDegree , int FEMDegree , BoundaryType FEMBType , class HasDataFunctor > void inalizeForBroodedMultigrid( LocalDepth fullDepth , const HasDataFunctor& F , std::vector< int64_t >* map=NULL );
 
 	// Generate an empty set of constraints
 	template< int FEMDegree > DenseNodeData< Real , FEMDegree > initDenseNodeData( void );
@@ -973,7 +973,7 @@ protected:
 	template< int FEMDegree1 , BoundaryType FEMBType1 , int FEMDegree2 , BoundaryType FEMBType2 , class DotFunctor , bool HasGradients , class Coefficients1 , class Coefficients2 >
 	double _dot( const DotFunctor& F , const InterpolationInfo< HasGradients >* iInfo , const Coefficients1& coefficients1 , const Coefficients2& coefficients2 ) const;
 };
-template< class Real > int Octree< Real >::_NodeCount = 0;
+template< class Real > int64_t Octree< Real >::_NodeCount = 0;
 
 
 template< class Real > void Reset( void ){ Octree< Real >::ResetNodeCount(); }
