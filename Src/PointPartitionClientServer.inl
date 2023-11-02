@@ -326,16 +326,6 @@ void _RunClients
 
 	for( unsigned int c=0 ; c<serverSockets.size() ; c++ ) SocketStream( serverSockets[c] ).read( clientIndices[c] );
 
-	int maxFiles = 2*clientPartitionInfo.slabs;
-#ifdef _WIN32
-	if( _setmaxstdio( maxFiles )!=maxFiles ) ERROR_OUT( "Could not set max file handles: " , maxFiles );
-#else // !_WIN32
-	struct rlimit rl;
-	getrlimit( RLIMIT_NOFILE , &rl ); 
-	rl.rlim_cur = maxFiles+3; 
-	setrlimit( RLIMIT_NOFILE , &rl );
-#endif // _WIN32
-
 	for( unsigned int i=0 ; i<serverSockets.size() ; i++ ) PointPartition::CreatePointSlabDirs( PointPartition::FileDir( clientPartitionInfo.tempDir , clientPartitionInfo.outHeader , clientIndices[i] ) , clientPartitionInfo.slabs , clientPartitionInfo.filesPerDir );
 
 	/////////////
