@@ -29,6 +29,7 @@ DAMAGE.
 #define STREAMS_INCLUDED
 
 #include "Array.h"
+#include "MyMiscellany.h"
 
 //////////////////
 // BinaryStream //
@@ -73,6 +74,9 @@ struct BinaryStream
 		if( !write( sz ) ) return false;
 		bool ret = true;
 		for( size_t i=0 ; i<sz && ret ; i++ ) ret &= write( c[i] );
+		if (!ret) {
+			ERROR_OUT( "Failed to write to stream" );
+		}
 		return ret;
 	}
 
@@ -141,6 +145,12 @@ struct FileStream : public BinaryStream
 {
 	FileStream( FILE *fp ) : _fp(fp){}
 	void reset( void ){ std::rewind( _fp ); }
+	void close( void ){
+		int ret = std::fclose( _fp );
+		if (ret != 0) {
+			ERROR_OUT( "Failed to close file" );
+		}
+	}
 protected:
 	FILE *_fp;
 	bool  _read(      Pointer( unsigned char ) ptr , size_t sz ){ return  fread( ptr , sizeof(unsigned char) , sz , _fp )==sz; }
