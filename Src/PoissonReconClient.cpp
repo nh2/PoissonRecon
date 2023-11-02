@@ -37,6 +37,7 @@ DAMAGE.
 #include <stdio.h>
 #include <stdlib.h>
 #include <algorithm>
+#include <filesystem>
 #include "MyMiscellany.h"
 #include "Reconstructors.h"
 #include "CmdLineParser.h"
@@ -44,6 +45,7 @@ DAMAGE.
 #define DEFAULT_DIMENSION 3
 
 cmdLineParameter< std::string >
+	LocalTempDir( "localTempDir" , std::filesystem::temp_directory_path().string() ) ,
 	Address( "address" , "127.0.0.1" );
 
 cmdLineParameter< int >
@@ -67,6 +69,7 @@ cmdLineReadable
 cmdLineReadable* params[] =
 {
 	&Port , &MultiClient , &Address ,
+	&LocalTempDir ,
 	&MaxMemoryGB , &ParallelType , &ScheduleType , &ThreadChunkSize , &Threads ,
 	&Pause ,
 	&PeakMemorySampleMS ,
@@ -78,6 +81,7 @@ void ShowUsage( char* ex )
 	printf( "Usage: %s\n" , ex );
 	printf( "\t --%s <server port>\n" , Port.name );
 	printf( "\t[--%s <multiplicity of serial sub-clients>=%d]\n" , MultiClient.name , MultiClient.value );
+	printf( "\t[--%s <local temporary directory>=%s]\n" , LocalTempDir.name , LocalTempDir.value.c_str() );
 	printf( "\t[--%s <server connection address>=%s]\n" , Address.name , Address.value.c_str() );
 	printf( "\t[--%s <num threads>=%d]\n" , Threads.name , Threads.value );
 	printf( "\t[--%s <parallel type>=%d]\n" , ParallelType.name , ParallelType.value );
@@ -101,7 +105,7 @@ void Partition( std::vector< Socket > &serverSockets )
 template< typename Real , unsigned int Dim , BoundaryType BType , unsigned int Degree >
 void Reconstruct( std::vector< Socket > &serverSockets )
 {
-	PoissonReconClientServer::RunClient< Real , Dim , BType , Degree >( serverSockets , PeakMemorySampleMS.value );
+	PoissonReconClientServer::RunClient< Real , Dim , BType , Degree >( serverSockets , PeakMemorySampleMS.value , LocalTempDir.value );
 	unsigned int peakMem = MemoryInfo::PeakMemoryUsageMB();
 	for( unsigned int i=0 ; i<serverSockets.size() ; i++ ) SocketStream( serverSockets[i] ).write( peakMem );
 }

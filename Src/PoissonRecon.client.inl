@@ -141,26 +141,41 @@ protected:
 	void _write( const ClientReconstructionInfo< Real , Dim > &clientReconInfo , BinaryStream &stream , unsigned int phase ) const;
 
 	template< typename _Real , unsigned int _Dim , BoundaryType _BType , unsigned int _Degree >
-	friend void RunClient( std::vector< Socket > &serverSockets , unsigned int sampleMS );
+	friend void RunClient( std::vector< Socket > &serverSockets , unsigned int sampleMS , const std::string & localTempDir );
 
 	template< bool HasGradients , bool HasDensity >
 	void _writeMeshWithData( const ClientReconstructionInfo< Real , Dim > &clientReconInfo , _State7 &state7 , XForm< Real , Dim+1 > unitCubeToModel );
 };
 
 template< typename Real , unsigned int Dim , BoundaryType BType , unsigned int Degree >
-void RunClient( std::vector< Socket > &serverSockets , unsigned int sampleMS )
+void RunClient( std::vector< Socket > &serverSockets , unsigned int sampleMS, const std::string & localTempDir )
 {
 	std::vector< SocketStream > serverSocketStreams( serverSockets.size() );
 	for( unsigned int i=0 ; i<serverSocketStreams.size() ; i++ ) serverSocketStreams[i] = SocketStream( serverSockets[i] );
 	Profiler profiler( sampleMS );
 	std::vector< FileStream > cacheFiles;
+	std::vector< std::string > cacheFilePaths;
 	ClientReconstructionInfo< Real , Dim > clientReconInfo;
 	std::vector< unsigned int > clientIndices( serverSocketStreams.size() );
 
 	for( unsigned int i=0 ; i<serverSocketStreams.size() ; i++ ) clientReconInfo = ClientReconstructionInfo< Real , Dim >( serverSocketStreams[i] );
 	for( unsigned int i=0 ; i<serverSocketStreams.size() ; i++ ) serverSocketStreams[i].read( clientIndices[i] );
 
-	if( serverSocketStreams.size()>1 ) for( unsigned int idx=0 ; idx<serverSocketStreams.size() ; idx++ ) cacheFiles.emplace_back( std::tmpfile() );
+	if( serverSocketStreams.size()>1 ) {
+		try{ std::filesystem::create_directories( localTempDir ); }
+		catch( ... ){ ERROR_OUT( "Failed to create directory: " , localTempDir ); }
+	}
+
+	auto makeTempFilePath = [&localTempDir]()
+	{
+		return (boost::filesystem::path(localTempDir) / boost::filesystem::unique_path("tmp-PoissonReconClient-%%%%-%%%%-%%%%-%%%%")).native();
+	};
+	auto openTempFile = [&localTempDir](const std::string & path)
+	{
+		FILE* fp = std::fopen( path.c_str() , "wb+" );
+		if( !fp ) ERROR_OUT( "Failed to open file for writing: " , path );
+		return fp;
+	};
 
 	Client< Real , Dim , BType , Degree > *client = NULL;
 	if( serverSocketStreams.size()==1 )
@@ -192,6 +207,9 @@ void RunClient( std::vector< Socket > &serverSockets , unsigned int sampleMS )
 			{
 				Timer timer;
 
+				const std::string tempFilePath = makeTempFilePath();
+				cacheFilePaths.push_back( tempFilePath );
+				cacheFiles.push_back( FileStream(openTempFile(tempFilePath)) );
 				cacheFiles[i].reset();
 				cacheFiles[i].ioBytes = 0;
 				client->_write( clientReconInfo , cacheFiles[i] , 1 );
@@ -239,6 +257,11 @@ void RunClient( std::vector< Socket > &serverSockets , unsigned int sampleMS )
 			if( serverSocketStreams.size()>1 )
 			{
 				Timer timer;
+				cacheFiles[i].close();
+				std::filesystem::remove(cacheFilePaths[i]); // free disk space
+				const std::string tempFilePath = makeTempFilePath();
+				cacheFilePaths[i] = tempFilePath;
+				cacheFiles[i] = FileStream(openTempFile(tempFilePath));
 				cacheFiles[i].ioBytes = 0;
 				cacheFiles[i].reset();
 				client->_write( clientReconInfo , cacheFiles[i] , 3 );
@@ -284,7 +307,12 @@ void RunClient( std::vector< Socket > &serverSockets , unsigned int sampleMS )
 			if( serverSocketStreams.size()>1 )
 			{
 				Timer timer;
-				cacheFiles[i].ioBytes;
+				cacheFiles[i].close();
+				std::filesystem::remove(cacheFilePaths[i]); // free disk space
+				const std::string tempFilePath = makeTempFilePath();
+				cacheFilePaths[i] = tempFilePath;
+				cacheFiles[i] = FileStream(openTempFile(tempFilePath));
+				cacheFiles[i].ioBytes = 0; // is this right? This does nothing!
 				cacheFiles[i].reset();
 				client->_write( clientReconInfo , cacheFiles[i] , 5 );
 				delete client;
@@ -327,6 +355,8 @@ void RunClient( std::vector< Socket > &serverSockets , unsigned int sampleMS )
 
 			if( serverSocketStreams.size()>1 )
 			{
+				cacheFiles[i].close();
+				std::filesystem::remove(cacheFilePaths[i]); // free disk space
 				delete client;
 				client = NULL;
 			}

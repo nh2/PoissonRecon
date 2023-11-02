@@ -33,7 +33,9 @@ DAMAGE.
 #include <string>
 #include <sstream>
 #include <algorithm>
+#include <filesystem>
 #include <fstream>
+#include <boost/filesystem.hpp>
 #include "PointPartition.h"
 #include "FEMTree.h"
 #include "VertexFactory.h"
@@ -87,7 +89,7 @@ namespace PoissonReconClientServer
 	);
 
 	template< typename Real , unsigned int Dim , BoundaryType BType , unsigned int Degree >
-	void RunClient( std::vector< Socket > &serverSockets , unsigned int sampleMS );
+	void RunClient( std::vector< Socket > &serverSockets , unsigned int sampleMS, const std::string & localTempDir );
 
 #include "PoissonReconClientServer.inl"
 #include "PoissonRecon.server.inl"
