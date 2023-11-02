@@ -41,10 +41,8 @@ struct BinaryStream
 
 	template< typename C > bool  read(       C &c ){ return  __read( (      Pointer( unsigned char ) )GetPointer( c ) , sizeof(C) ); }
 	template< typename C > bool write( const C &c ){ return __write( ( ConstPointer( unsigned char ) )GetPointer( c ) , sizeof(C) ); }
-	template< typename C > bool write(       C &c ){ return __write( ( ConstPointer( unsigned char ) )GetPointer( c ) , sizeof(C) ); }
 	template< typename C > bool  read(      Pointer( C ) c , size_t sz ){ return  __read( (      Pointer( unsigned char ) )c , sizeof(C)*sz ); }
 	template< typename C > bool write( ConstPointer( C ) c , size_t sz ){ return __write( ( ConstPointer( unsigned char ) )c , sizeof(C)*sz ); }
-	template< typename C > bool write(      Pointer( C ) c , size_t sz ){ return __write( ( ConstPointer( unsigned char ) )c , sizeof(C)*sz ); }
 
 	template< typename C >
 	bool read( std::vector< std::vector< C > > &c )
@@ -89,25 +87,6 @@ struct BinaryStream
 		else return true;
 	}
 
-	template< typename C >
-	bool write( std::vector< std::vector< C > > &c )
-	{
-		size_t sz = c.size();
-		if( !write( sz ) ) return false;
-		bool ret = true;
-		for( size_t i=0 ; i<sz && ret ; i++ ) ret &= write( c[i] );
-		return ret;
-	}
-
-	template< typename C >
-	bool write( std::vector< C > &c )
-	{
-		size_t sz = c.size();
-		if( !write( sz ) ) return false;
-		if( sz ) return write( GetPointer( c )  , sz );
-		else return true;
-	}
-
 	bool read( std::string &str )
 	{
 		size_t sz;
@@ -126,12 +105,6 @@ struct BinaryStream
 		return write( GetPointer( str.c_str() , sz+1 ) , sz+1 );
 	}
 
-	bool write( std::string &str )
-	{
-		size_t sz = strlen( str.c_str() );
-		if( !write( sz ) ) return false;
-		return write( GetPointer( str.c_str() , sz+1 ) , sz+1 );
-	}
 protected:
 	virtual bool  _read(      Pointer( unsigned char ) ptr , size_t sz ) = 0;
 	virtual bool _write( ConstPointer( unsigned char ) ptr , size_t sz ) = 0;
