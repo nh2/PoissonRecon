@@ -86,7 +86,7 @@ void ShowUsage( char* ex )
 	printf( "\t[--%s <num threads>=%d]\n" , Threads.name , Threads.value );
 	printf( "\t[--%s <parallel type>=%d]\n" , ParallelType.name , ParallelType.value );
 	for( size_t i=0 ; i<ThreadPool::ParallelNames.size() ; i++ ) printf( "\t\t%d] %s\n" , (int)i , ThreadPool::ParallelNames[i].c_str() );
-	printf( "\t[--%s <schedue type>=%d]\n" , ScheduleType.name , ScheduleType.value );
+	printf( "\t[--%s <schedule type>=%d]\n" , ScheduleType.name , ScheduleType.value );
 	for( size_t i=0 ; i<ThreadPool::ScheduleNames.size() ; i++ ) printf( "\t\t%d] %s\n" , (int)i , ThreadPool::ScheduleNames[i].c_str() );
 	printf( "\t[--%s <thread chunk size>=%d]\n" , ThreadChunkSize.name , ThreadChunkSize.value );
 	printf( "\t[--%s <peak memory sampling rate (ms)>=%d]\n" , PeakMemorySampleMS.name , PeakMemorySampleMS.value );
