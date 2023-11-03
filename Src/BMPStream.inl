@@ -99,7 +99,7 @@ inline void BMPGetImageInfo( char* fileName , int& width , int& height , int& ch
 	bytesPerChannel = 1;
 	int lineLength = width * channels;
 	if( lineLength % 4 ) lineLength = (lineLength / 4 + 1) * 4;
-	if( bmih.biSizeImage!=lineLength*height ){ fclose(fp) ; ERROR_OUT( "Bad bitmap image size" ) , fclose( fp ); };
+	if( bmih.biSizeImage!=lineLength*height ){ fclose(fp) ; ERROR_OUT( "Bad bitmap image size" ); };
 	fclose( fp );
 }
 
