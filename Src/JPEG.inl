@@ -70,7 +70,7 @@ inline bool JPEGReader::GetInfo( const char* fileName , unsigned int& width , un
 	height = cInfo.image_height;
 	jpeg_destroy_decompress( &cInfo );
 
-	fclose( fp );
+	throwing_fclose( fp );
 	return true;
 }
 
@@ -102,7 +102,7 @@ inline JPEGReader::~JPEGReader( void )
 {
 	(void) jpeg_finish_decompress( &_cInfo );
 	jpeg_destroy_decompress( &_cInfo );
-	fclose( _fp );
+	fclose_from_destructor( _fp );
 }
 inline unsigned int JPEGReader::nextRow( unsigned char* row )
 {
@@ -137,7 +137,7 @@ inline JPEGWriter::~JPEGWriter( void )
 {
 	jpeg_finish_compress( &_cInfo );
 	jpeg_destroy_compress( &_cInfo );
-	fclose( _fp );
+	fclose_from_destructor( _fp );
 }
 inline unsigned int JPEGWriter::nextRow( const unsigned char* row )
 {

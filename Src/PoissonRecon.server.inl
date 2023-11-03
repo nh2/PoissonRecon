@@ -663,7 +663,7 @@ PhaseInfo Server< Real , Dim , BType , Degree >::_phase6( const ClientReconstruc
 					DenseNodeData< Real , SliceSigs >::WriteSignatures( fs );
 					sliceTree->write( fs , state6.xForm , false );
 					solution.write( fs );
-					fclose( fp );
+					throwing_fclose( fp );
 				};
 				{
 					std::stringstream ss;

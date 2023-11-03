@@ -39,7 +39,7 @@ ASCIIInputDataStream< Factory >::ASCIIInputDataStream( const char* fileName , co
 template< typename Factory >
 ASCIIInputDataStream< Factory >::~ASCIIInputDataStream( void )
 {
-	fclose( _fp );
+	fclose_from_destructor( _fp );
 	_fp = NULL;
 }
 
@@ -62,7 +62,7 @@ ASCIIOutputDataStream< Factory >::ASCIIOutputDataStream( const char* fileName , 
 template< typename Factory >
 ASCIIOutputDataStream< Factory >::~ASCIIOutputDataStream( void )
 {
-	fclose( _fp );
+	fclose_from_destructor( _fp );
 	_fp = NULL;
 }
 

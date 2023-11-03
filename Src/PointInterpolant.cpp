@@ -442,11 +442,11 @@ void WriteGrid( const char *fileName , ConstPointer( Real ) values , unsigned in
 		FILE *fp = fopen( fileName , "wb" );
 		if( !fp ) ERROR_OUT( "Failed to open file for writing: " , fileName );
 		int r = (int)res;
-		fwrite( &r , sizeof(int) , 1 , fp );
+		throwing_fwrite( &r , sizeof(int) , 1 , fp );
 		size_t count = 1;
 		for( unsigned int d=0 ; d<Dim ; d++ ) count *= res;
-		fwrite( values , sizeof(Real) , count , fp );
-		fclose( fp );
+		throwing_fwrite( values , sizeof(Real) , count , fp );
+		throwing_fclose( fp );
 	}
 	else
 	{
@@ -569,7 +569,7 @@ void Execute( UIntPack< FEMSigs ... > )
 				if( fscanf( fp , " %f " , &f )!=1 ) ERROR_OUT( "Failed to read xform" );
 				modelToUnitCube(i,j) = (Real)f;
 			}
-			fclose( fp );
+			throwing_fclose( fp );
 		}
 	}
 	else modelToUnitCube = XForm< Real , Dim+1 >::Identity();
@@ -863,7 +863,7 @@ void Execute( UIntPack< FEMSigs ... > )
 		DenseNodeData< Real , Sigs >::WriteSignatures( fs );
 		tree.write( fs , modelToUnitCube , false );
 		solution.write( fs );
-		fclose( fp );
+		throwing_fclose( fp );
 	}
 
 	if( Grid.set )

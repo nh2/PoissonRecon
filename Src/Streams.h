@@ -118,16 +118,13 @@ struct FileStream : public BinaryStream
 {
 	FileStream( FILE *fp ) : _fp(fp){}
 	void reset( void ){ std::rewind( _fp ); }
-	void close( void ){
-		int ret = std::fclose( _fp );
-		if (ret != 0) {
-			ERROR_OUT( "Failed to close file" );
-		}
-	}
+	void close( void ){ throwing_fclose( _fp ); }
 protected:
 	FILE *_fp;
 	bool  _read(      Pointer( unsigned char ) ptr , size_t sz ){ return  fread( ptr , sizeof(unsigned char) , sz , _fp )==sz; }
-	bool _write( ConstPointer( unsigned char ) ptr , size_t sz ){ return fwrite( ptr , sizeof(unsigned char) , sz , _fp )==sz; }
+	// Currently using `throwing_fwrite()` because most callers haven't been updated to inspect the returned `bool`, see #280.
+	// Thus the returned `bool` is always true, and exceptions are thrown otherwise.
+	bool _write( ConstPointer( unsigned char ) ptr , size_t sz ){ throwing_fwrite( ptr , sizeof(unsigned char) , sz , _fp ); return true; }
 };
 
 template< typename C >

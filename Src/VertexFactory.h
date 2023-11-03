@@ -29,6 +29,7 @@ DAMAGE.
 #define VERTEX_FACTORY_INCLUDED
 
 #include <inttypes.h>
+#include "MyMiscellany.h"
 #include "Ply.h"
 #include "Array.h"
 
@@ -178,7 +179,7 @@ namespace VertexFactory
 		}
 		void writeBinary( FILE *fp , const VertexType &dt ) const
 		{
-			if( _realTypeOnDisk ) fwrite( &dt[0] , sizeof(Real) , Dim , fp );
+			if( _realTypeOnDisk ) throwing_fwrite( &dt[0] , sizeof(Real) , Dim , fp );
 			else VertexIO< Real >::WriteBinary( fp , _typeOnDisk , Dim , &dt[0] );
 		}
 		bool isStaticallyAllocated( void ) const{ return true; }
@@ -235,7 +236,7 @@ namespace VertexFactory
 		}
 		void writeBinary( FILE *fp , const VertexType &dt ) const
 		{
-			if( _realTypeOnDisk ) fwrite( &dt[0] , sizeof(Real) , Dim , fp );
+			if( _realTypeOnDisk ) throwing_fwrite( &dt[0] , sizeof(Real) , Dim , fp );
 			else VertexIO< Real >::WriteBinary( fp , _typeOnDisk , Dim , &dt[0] );
 		}
 
@@ -285,7 +286,7 @@ namespace VertexFactory
 		}
 		void writeBinary( FILE *fp , const VertexType &dt ) const
 		{
-			if( _realTypeOnDisk ) fwrite( &dt[0] , sizeof(Real) , Dim , fp );
+			if( _realTypeOnDisk ) throwing_fwrite( &dt[0] , sizeof(Real) , Dim , fp );
 			VertexIO< Real >::WriteBinary( fp , _typeOnDisk , Dim , &dt[0] );
 		}
 
@@ -336,7 +337,7 @@ namespace VertexFactory
 		}
 		void writeBinary( FILE *fp , const VertexType &dt ) const
 		{
-			if( _realTypeOnDisk ) fwrite( &dt[0] , sizeof(Real) , 3 , fp );
+			if( _realTypeOnDisk ) throwing_fwrite( &dt[0] , sizeof(Real) , 3 , fp );
 			VertexIO< Real >::WriteBinary( fp , _typeOnDisk , 3 , &dt[0] );
 		}
 
@@ -386,7 +387,7 @@ namespace VertexFactory
 		}
 		void writeBinary( FILE *fp , const VertexType &dt ) const
 		{
-			if( _realTypeOnDisk ) fwrite( &dt[0] , sizeof(Real) , 4 , fp );
+			if( _realTypeOnDisk ) throwing_fwrite( &dt[0] , sizeof(Real) , 4 , fp );
 			VertexIO< Real >::WriteBinary( fp , _typeOnDisk , 4 , &dt[0] );
 		}
 
@@ -435,7 +436,7 @@ namespace VertexFactory
 		}
 		void writeBinary( FILE *fp , const VertexType &dt ) const
 		{
-			if( _realTypeOnDisk ) fwrite( &dt , sizeof(Real) , 1 , fp );
+			if( _realTypeOnDisk ) throwing_fwrite( &dt , sizeof(Real) , 1 , fp );
 			else VertexIO< Real >::WriteBinary( fp , _typeOnDisk , 1 , &dt );
 		}
 

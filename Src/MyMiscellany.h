@@ -28,6 +28,7 @@ DAMAGE.
 #ifndef MY_MISCELLANY_INCLUDED
 #define MY_MISCELLANY_INCLUDED
 
+#include <cstring>
 #include <iostream>
 #include <sstream>
 
@@ -328,6 +329,75 @@ inline void SignalHandler( int signal )
 };
 
 
+[[noreturn]]
+void exit_1_with_errno_stderr_if_possible(const char * operation) { // `const char *` to ensure we don't try accidental allocation by implicit conversion that can throw
+	std::cerr << "Failed to " << operation; // no endl
+	// Continuing same output line below, in a non-allocating way,
+	// because allocation may throw and we're in a destructor.
+
+	// On POSIX only, `fclose()` is guaranteed to set `errno`,
+	// see https://pubs.opengroup.org/onlinepubs/9699919799/functions/fclose.html
+#if defined( _WIN32 ) || defined( _WIN64 )
+	// We can get no futher info.
+#else // !_WIN32 && !_WIN64
+	std::cerr << ": " << std::strerror(errno);
+#endif // _WIN32 || _WIN64
+	std::cerr << std::endl;
+
+	// We failed from a destructor; some form of program termination is our only option.
+	std::exit(1);
+}
+
+
+void throw_with_errno_if_possible(const char * operation) {
+	// On POSIX only, `fclose()` is guaranteed to set `errno`,
+	// see https://pubs.opengroup.org/onlinepubs/9699919799/functions/fclose.html
+#if defined( _WIN32 ) || defined( _WIN64 )
+	std::string details = ""; // We can get no futher info.
+#else // !_WIN32 && !_WIN64
+	std::string details = ": " + std::string(std::strerror(errno));
+#endif // _WIN32 || _WIN64
+	throw std::runtime_error("Failed to fclose()" + details);
+}
+
+
+size_t throwing_fwrite( const void* buffer, std::size_t size, std::size_t count, std::FILE* stream )
+{
+	size_t written_count = std::fwrite( buffer, size, count, stream );
+	if (written_count != count) {
+		throw_with_errno_if_possible("fwrite()");
+	}
+	return written_count;
+}
+
+
+void fwrite_from_destructor( const void* buffer, std::size_t size, std::size_t count, std::FILE* stream )
+{
+	size_t written_count = std::fwrite( buffer, size, count, stream );
+	if (written_count != count) {
+		exit_1_with_errno_stderr_if_possible("fwrite()");
+	}
+}
+
+
+void throwing_fclose( std::FILE* stream )
+{
+	size_t res = std::fclose( stream );
+	if (res != 0) {
+		throw_with_errno_if_possible("fclose()");
+	}
+}
+
+
+void fclose_from_destructor( std::FILE* stream )
+{
+	size_t res = std::fclose( stream );
+	if (res != 0) {
+		exit_1_with_errno_stderr_if_possible("fclose()");
+	}
+}
+
+
 template< typename Value > bool SetAtomic( volatile Value *value , Value newValue , Value oldValue );
 template< typename Data > void AddAtomic( Data& a , Data b );
 
@@ -358,13 +428,13 @@ public:
 #endif // _WIN32
 			if( !fp ) ERROR_OUT( "Failed to open file: " , fileName );
 		}
-		void remove( void ){ if( fp ){ fclose( fp ) ; fp = NULL ; std::remove( fileName ); } }
+		void remove( void ){ if( fp ){ throwing_fclose( fp ) ; fp = NULL ; std::remove( fileName ); } }
 	};
 
 	FileBackedReadWriteStream( const char* fileHeader="" ) : _fd( fileHeader ) , _fileHandleOwner(true) {}
 	FileBackedReadWriteStream( FILE *fp ) : _fd(fp) , _fileHandleOwner(false) {}
 	~FileBackedReadWriteStream( void ){ if( _fileHandleOwner ) _fd.remove(); }
-	bool write( ConstPointer(char) data , size_t size ){ return fwrite( data , sizeof(char) , size , _fd.fp )==size; }
+	bool write( ConstPointer(char) data , size_t size ){ return throwing_fwrite( data , sizeof(char) , size , _fd.fp )==size; }
 	bool read( Pointer(char) data , size_t size ){ return fread( data , sizeof(char) , size , _fd.fp )==size; }
 	void reset( void ){ fseek( _fd.fp , 0 , SEEK_SET ); }
 protected:
@@ -1019,10 +1089,10 @@ inline size_t getCurrentRSS( )
 		return (size_t)0L;      /* Can't open? */
 	if ( fscanf( fp, "%*s%ld", &rss ) != 1 )
 	{
-		fclose( fp );
+		throwing_fclose( fp );
 		return (size_t)0L;      /* Can't read? */
 	}
-	fclose( fp );
+	throwing_fclose( fp );
 	return (size_t)rss * (size_t)sysconf( _SC_PAGESIZE);
 
 #else

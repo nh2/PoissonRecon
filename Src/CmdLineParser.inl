@@ -279,7 +279,7 @@ inline char** ReadWords(const char* fileName,int& cnt)
 	if(!fp){return NULL;}
 	cnt=0;
 	while(fscanf(fp," %s ",temp)==1){cnt++;}
-	fclose(fp);
+	throwing_fclose(fp);
 
 	names=new char*[cnt];
 	if(!names){return NULL;}
@@ -297,12 +297,12 @@ inline char** ReadWords(const char* fileName,int& cnt)
 			for(int j=0;j<cnt;j++){delete[] names[j];}
 			delete[] names;
 			cnt=0;
-			fclose(fp);
+			throwing_fclose(fp);
 			return NULL;
 		}
 		strcpy(names[cnt],temp);
 		cnt++;
 	}
-	fclose(fp);
+	throwing_fclose(fp);
 	return names;
 }

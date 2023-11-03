@@ -118,7 +118,7 @@ inline bool PNGReader::GetInfo( const char* fileName , unsigned int& width , uns
 	channels = png_get_channels( png_ptr , info_ptr );
 
 	png_destroy_read_struct( &png_ptr , &info_ptr , &end_info );
-	fclose( fp );
+	throwing_fclose( fp );
 	return true;
 }
 
@@ -158,7 +158,7 @@ PNGWriter::~PNGWriter( void )
 {
 	png_write_end( _png_ptr , NULL );
 	png_destroy_write_struct( &_png_ptr , &_info_ptr );
-	fclose( _fp );
+	fclose_from_destructor( _fp );
 }
 unsigned int PNGWriter::nextRow( const unsigned char* row )
 {

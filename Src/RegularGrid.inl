@@ -107,12 +107,12 @@ bool RegularGrid< DataType , Dim >::ReadHeader( std::string fileName , unsigned 
 	{
 		// Write the magic number
 		int d;
-		if( fscanf( fp , " G%d " , &d )!=1 || d!=Dim ){ fclose(fp) ; return false; }
+		if( fscanf( fp , " G%d " , &d )!=1 || d!=Dim ){ throwing_fclose(fp) ; return false; }
 
 		char line[1024];
-		if( fscanf( fp , " %d %s " , &d , line )!=2 ){ fclose(fp) ; return false; }
+		if( fscanf( fp , " %d %s " , &d , line )!=2 ){ throwing_fclose(fp) ; return false; }
 		dim = d , name =std::string( line );
-		fclose( fp );
+		throwing_fclose( fp );
 	}
 	return true;
 }
@@ -147,8 +147,8 @@ void RegularGrid< DataType , Dim >::Write( std::string fileName , const unsigned
 		}
 
 		// Write the grid values
-		fwrite( values , sizeof(DataType) , _Resolution(res) , fp );
-		fclose( fp );
+		throwing_fwrite( values , sizeof(DataType) , _Resolution(res) , fp );
+		throwing_fclose( fp );
 	}
 }
 
@@ -209,7 +209,7 @@ void RegularGrid< DataType , Dim >::Read( std::string fileName , unsigned int re
 
 		// Write the grid values
 		fread( values , sizeof(DataType) , _Resolution(res) , fp );
-		fclose( fp );
+		throwing_fclose( fp );
 	}
 }
 

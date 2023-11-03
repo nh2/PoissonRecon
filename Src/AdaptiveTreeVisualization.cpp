@@ -183,11 +183,11 @@ void WriteGrid( const char *fileName , ConstPointer( Real ) values , unsigned in
 		FILE *fp = fopen( fileName , "wb" );
 		if( !fp ) ERROR_OUT( "Failed to open file for writing: " , fileName );
 		int r = (int)res;
-		fwrite( &r , sizeof(int) , 1 , fp );
+		throwing_fwrite( &r , sizeof(int) , 1 , fp );
 		size_t count = 1;
 		for( unsigned int d=0 ; d<Dim ; d++ ) count *= res;
-		fwrite( values , sizeof(Real) , count , fp );
-		fclose( fp );
+		throwing_fwrite( values , sizeof(Real) , count , fp );
+		throwing_fclose( fp );
 	}
 	else
 	{
@@ -392,7 +392,7 @@ void _Execute( const FEMTree< Dim , Real > *tree , XForm< Real , Dim+1 > modelTo
 		DenseNodeData< Real , IsotropicUIntPack< Dim-1 , FEMSig > >::WriteSignatures( fs );
 		sliceTree->write( fs , sliceModelToUnitCube , false );
 		sliceCoefficients.write( fs );
-		fclose( fp );
+		throwing_fclose( fp );
 
 		delete sliceTree;
 	}
@@ -522,6 +522,6 @@ int main( int argc , char* argv[] )
 	default: ERROR_OUT( "Only dimensions 1-4 supported" );
 	}
 
-	fclose( fp );
+	throwing_fclose( fp );
 	return EXIT_SUCCESS;
 }

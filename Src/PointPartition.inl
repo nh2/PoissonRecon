@@ -537,14 +537,14 @@ long ReadPLYProperties( const char *fileName , std::vector< PlyProperty > &prope
 	FILE *fp = fopen( fileName , "rb" );
 	if( !fp ) ERROR_OUT( "Could not open file for reading: " , fileName );
 	long pos = ReadPLYProperties( fp , properties );
-	fclose( fp );
+	throwing_fclose( fp );
 	return pos;
 }
 
 long WritePLYProperties( FILE *fp , const std::vector< PlyProperty > &properties )
 {
 	size_t sz = properties.size();
-	fwrite( &sz , sizeof( size_t ) , 1 , fp );
+	throwing_fwrite( &sz , sizeof( size_t ) , 1 , fp );
 	FileStream fs(fp);
 	for( size_t i=0 ; i<sz ; i++ ) properties[i].write( fs );
 	return ftell( fp );
@@ -555,7 +555,7 @@ long WritePLYProperties( const char *fileName , const std::vector< PlyProperty >
 	FILE *fp = fopen( fileName , "wb" );
 	if( !fp ) ERROR_OUT( "Could not open file for writing: " , fileName );
 	long pos = WritePLYProperties( fp , properties );
-	fclose( fp );
+	throwing_fclose( fp );
 	return pos;
 }
 
@@ -583,7 +583,7 @@ template< typename InputFactory >
 BufferedBinaryInputDataStream< InputFactory >::~BufferedBinaryInputDataStream( void )
 {
 	FreePointer( _buffer );
-	fclose( _fp );
+	fclose_from_destructor( _fp );
 }
 
 template< typename InputFactory >
@@ -634,9 +634,9 @@ BufferedBinaryOutputDataStream< OutputFactory >::BufferedBinaryOutputDataStream(
 template< typename OutputFactory >
 BufferedBinaryOutputDataStream< OutputFactory >::~BufferedBinaryOutputDataStream( void )
 {
-	if( _current ) fwrite( _buffer , _elementSize , _current , _fp );
+	if( _current ) fwrite_from_destructor( _buffer , _elementSize , _current , _fp );
 	FreePointer( _buffer );
-	fclose( _fp );
+	fclose_from_destructor( _fp );
 }
 
 template< typename OutputFactory >
@@ -651,7 +651,7 @@ void BufferedBinaryOutputDataStream< OutputFactory >::base_write( const Data &d 
 {
 	if( _current==_bufferSize ) 
 	{
-		fwrite( _buffer , _elementSize , _bufferSize , _fp );
+		throwing_fwrite( _buffer , _elementSize , _bufferSize , _fp );
 		_current = 0;
 	}
 	_factory.toBuffer( d , _buffer + _elementSize*_current );

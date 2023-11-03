@@ -219,7 +219,7 @@ void _Execute( int argc , char* argv[] )
 				if( fscanf( fp , " %f " , &f )!=1 ) ERROR_OUT( "Failed to read xform" );
 				modelToUnitCube(i,j) = (Real)f;
 			}
-			fclose( fp );
+			throwing_fclose( fp );
 		}
 	}
 	else modelToUnitCube = XForm< Real , Dim+1 >::Identity();
@@ -281,7 +281,7 @@ void _Execute( int argc , char* argv[] )
 					for( int j=0 ; j<Dim+1 ; j++ ) fprintf( fp , " %f" , (float)unitCubeToModel(i,j) );
 					fprintf( fp , "\n" );
 				}
-				fclose( fp );
+				throwing_fclose( fp );
 			}
 		}
 
@@ -537,7 +537,7 @@ void _Execute( int argc , char* argv[] )
 			DenseNodeData< Real , IsotropicUIntPack< Dim , FEMSig > >::WriteSignatures( fs );
 			tree.write( fs , modelToUnitCube , false );
 			edtSolution.write( fs );
-			fclose( fp );
+			throwing_fclose( fp );
 		}
 	}
 	if( valueInfo ) delete valueInfo , valueInfo = NULL;

@@ -232,7 +232,7 @@ struct PlyFile
 	static PlyFile *Read ( const std::string & ,       std::vector< std::string > & , int & , float & );
 
 	PlyFile( FILE *f ) : fp(f) , other_elems(NULL) , version(1.) { }
-	~PlyFile( void ){ if( fp ) fclose(fp) ; if(other_elems) delete other_elems; }
+	~PlyFile( void ){ if( fp ) fclose_from_destructor(fp) ; if(other_elems) delete other_elems; }
 
 	void describe_element ( const std::string & , size_t , int , const PlyProperty * );
 	void describe_property( const std::string & , const PlyProperty * );

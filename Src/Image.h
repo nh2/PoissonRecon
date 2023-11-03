@@ -331,7 +331,7 @@ bool TiledImageReader::GetInfo( const char* fileName , unsigned int& width , uns
 			else if( _tileHeights[r+1]!=_h ) ERROR_OUT( "Images in the same row must have the same heights: " , _tileHeights[r+1] ," != " , _h );
 		}
 	}
-	fclose( fp );
+	throwing_fclose( fp );
 	if( fileDir ) delete[] fileDir;
 	_tileWidths[0] = _tileHeights[0] = 0;
 	for( unsigned int c=0 ; c<_tileColumns ; c++ ) _tileWidths[c+1] += _tileWidths[c];
@@ -370,7 +370,7 @@ TiledImageReader::TiledImageReader( const char* fileName , unsigned int& width ,
 			strcpy( _tileNames[r*_tileColumns+c] , tileName );
 		}
 	}
-	fclose( fp );
+	throwing_fclose( fp );
 	if( fileDir ) delete[] fileDir;
 	for( unsigned int r=0 ; r<_tileRows ; r++ ) for( unsigned int c=0 ; c<_tileColumns ; c++ )
 	{
@@ -442,7 +442,7 @@ TiledImageWriter::TiledImageWriter( const char* fileName , unsigned int width , 
 		fprintf( fp , "%s\n" , localTileName );
 		delete[] localTileName;
 	}
-	fclose( fp );
+	throwing_fclose( fp );
 	_currentPixelRow = 0;
 }
 TiledImageWriter::~TiledImageWriter( void )

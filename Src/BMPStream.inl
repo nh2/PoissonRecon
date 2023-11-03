@@ -30,6 +30,7 @@ DAMAGE.
 
 #include <stdio.h>
 #include "Array.h"
+#include "MyMiscellany.h"
 
 /* constants for the biCompression field */
 #define BI_RGB        0L
@@ -91,16 +92,16 @@ inline void BMPGetImageInfo( char* fileName , int& width , int& height , int& ch
 	fread( &bmfh , sizeof( BITMAPFILEHEADER ) , 1 , fp );
 	fread( &bmih , sizeof( BITMAPINFOHEADER ) , 1 , fp );
 
-	if( bmfh.bfType!=BMP_BF_TYPE || bmfh.bfOffBits!=BMP_BF_OFF_BITS ){ fclose(fp) ; ERROR_OUT( "Bad bitmap file header" ); };
-	if( bmih.biSize!=BMP_BI_SIZE || bmih.biWidth<=0 || bmih.biHeight<=0 || bmih.biPlanes!=1 || bmih.biBitCount!=24 || bmih.biCompression!=BI_RGB ) { fclose(fp) ; ERROR_OUT( "Bad bitmap file info" ); }
+	if( bmfh.bfType!=BMP_BF_TYPE || bmfh.bfOffBits!=BMP_BF_OFF_BITS ){ throwing_fclose(fp) ; ERROR_OUT( "Bad bitmap file header" ); };
+	if( bmih.biSize!=BMP_BI_SIZE || bmih.biWidth<=0 || bmih.biHeight<=0 || bmih.biPlanes!=1 || bmih.biBitCount!=24 || bmih.biCompression!=BI_RGB ) { throwing_fclose(fp) ; ERROR_OUT( "Bad bitmap file info" ); }
 	width           = bmih.biWidth;
 	height          = bmih.biHeight;
 	channels        = 3;
 	bytesPerChannel = 1;
 	int lineLength = width * channels;
 	if( lineLength % 4 ) lineLength = (lineLength / 4 + 1) * 4;
-	if( bmih.biSizeImage!=lineLength*height ){ fclose(fp) ; ERROR_OUT( "Bad bitmap image size" ); };
-	fclose( fp );
+	if( bmih.biSizeImage!=lineLength*height ){ throwing_fclose(fp) ; ERROR_OUT( "Bad bitmap image size" ); };
+	throwing_fclose( fp );
 }
 
 inline void* BMPInitRead( char* fileName , int& width , int& height )
@@ -154,7 +155,7 @@ inline void* BMPInitWrite( char* fileName , int width , int height , int quality
 	bmfh.bfReserved2 = 0;
 	bmfh.bfOffBits = BMP_BF_OFF_BITS;
 
-	fwrite( &bmfh , sizeof(BITMAPFILEHEADER) , 1 , info->fp );
+	throwing_fwrite( &bmfh , sizeof(BITMAPFILEHEADER) , 1 , info->fp );
 
 	bmih.biSize = BMP_BI_SIZE;
 	bmih.biWidth = width;
@@ -168,7 +169,7 @@ inline void* BMPInitWrite( char* fileName , int width , int height , int quality
 	bmih.biClrUsed = 0;
 	bmih.biClrImportant = 0;
 
-	fwrite( &bmih , sizeof(BITMAPINFOHEADER) , 1 , info->fp );
+	throwing_fwrite( &bmih , sizeof(BITMAPINFOHEADER) , 1 , info->fp );
 
 	return info;
 }
@@ -178,7 +179,7 @@ inline void BMPWriteRow( Pointer( ChannelType ) pixels , void* v , int j )
 	BMPInfo* info = (BMPInfo*)v;
 	ConvertRow< ChannelType , unsigned char >( pixels , info->data , info->width , Channels , 3 );
 	for( int i=0 ; i<info->width ; i++ ) { unsigned char temp = info->data[i*3] ; info->data[i*3] = info->data[i*3+2] ; info->data[i*3+2] = temp; }
-	fwrite( info->data , sizeof(unsigned char) , info->width*3 , info->fp );
+	throwing_fwrite( info->data , sizeof(unsigned char) , info->width*3 , info->fp );
 	int nbytes = info->width*3;
 	while( nbytes % 4 ) putc( 0 , info->fp ) , nbytes++;
 }
@@ -197,7 +198,7 @@ void BMPReadRow( Pointer( ChannelType ) pixels , void* v , int j )
 inline void BMPFinalize( void* v )
 {
 	BMPInfo* info = (BMPInfo*)v;
-	fclose( info->fp );
+	throwing_fclose( info->fp );
 	FreePointer( info->data );
 	free( info );
 }

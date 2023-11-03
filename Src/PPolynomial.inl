@@ -27,6 +27,7 @@ DAMAGE.
 */
 
 #include "Factor.h"
+#include "MyMiscellany.h"
 
 ////////////////////////
 // StartingPolynomial //
@@ -461,10 +462,10 @@ void PPolynomial<Degree>::getSolutions(double c,std::vector<double>& roots,doubl
 
 template<int Degree>
 void PPolynomial<Degree>::write(FILE* fp,int samples,double min,double max) const{
-	fwrite(&samples,sizeof(int),1,fp);
+	throwing_fwrite(&samples,sizeof(int),1,fp);
 	for(int i=0;i<samples;i++){
 		double x=min+i*(max-min)/(samples-1);
 		float v=(*this)(x);
-		fwrite(&v,sizeof(float),1,fp);
+		throwing_fwrite(&v,sizeof(float),1,fp);
 	}
 }

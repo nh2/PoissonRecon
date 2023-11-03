@@ -31,6 +31,7 @@ DAMAGE.
 
 #include <vector>
 #include "DataStream.h"
+#include "MyMiscellany.h"
 #include "VertexFactory.h"
 #include "Ply.h"
 
@@ -86,7 +87,7 @@ struct FileBackedOutputDataStream : public OutputDataStream< Data >
 protected:
 	FILE *_fp;
 
-	void base_write( const Data &d ){ fwrite( &d , sizeof(Data) , 1 , _fp ); }
+	void base_write( const Data &d ){ throwing_fwrite( &d , sizeof(Data) , 1 , _fp ); }
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -129,8 +130,8 @@ protected:
 	void base_write( const std::vector< Data > &d )
 	{
 		unsigned int pSize = (unsigned int)d.size();
-		fwrite( &pSize , sizeof(unsigned int) , 1 , _fp );
-		fwrite( &d[0] , sizeof(Data) , pSize , _fp );
+		throwing_fwrite( &pSize , sizeof(unsigned int) , 1 , _fp );
+		throwing_fwrite( &d[0] , sizeof(Data) , pSize , _fp );
 	}
 };
 
@@ -170,7 +171,7 @@ protected:
 	Pointer( char ) _buffer;
 	const size_t _bufferSize;
 
-	void base_write( const Data &d ){ _factory.toBuffer( d , _buffer ) ; fwrite( _buffer , sizeof(unsigned char) , _bufferSize , _fp ); }
+	void base_write( const Data &d ){ _factory.toBuffer( d , _buffer ) ; throwing_fwrite( _buffer , sizeof(unsigned char) , _bufferSize , _fp ); }
 };
 
 
@@ -215,7 +216,7 @@ struct BinaryInputDataStream : public InputDataStream< typename Factory::VertexT
 	typedef typename Factory::VertexType Data;
 
 	BinaryInputDataStream( const char* filename , const Factory &factory );
-	~BinaryInputDataStream( void ){ fclose( _fp ) , _fp=NULL; }
+	~BinaryInputDataStream( void ){ fclose_from_destructor( _fp ) , _fp=NULL; }
 	void reset( void );
 
 protected:
@@ -231,7 +232,7 @@ struct BinaryOutputDataStream : public OutputDataStream< typename Factory::Verte
 	typedef typename Factory::VertexType Data;
 
 	BinaryOutputDataStream( const char* filename , const Factory &factory );
-	~BinaryOutputDataStream( void ){ fclose( _fp ) , _fp=NULL; }
+	~BinaryOutputDataStream( void ){ fclose_from_destructor( _fp ) , _fp=NULL; }
 	void reset( void ){ fseek( _fp , 0 , SEEK_SET ); }
 
 protected:

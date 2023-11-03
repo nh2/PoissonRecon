@@ -106,7 +106,7 @@ namespace VertexFactory
 
 	template< typename Real >
 	template< typename Type >
-	void VertexIO< Real >::_WriteBinary( FILE *fp , Real r ){ Type t = (Type)r ; fwrite(  &t , sizeof(Type) , 1 , fp ); }
+	void VertexIO< Real >::_WriteBinary( FILE *fp , Real r ){ Type t = (Type)r ; throwing_fwrite(  &t , sizeof(Type) , 1 , fp ); }
 
 	template< typename Real >
 	bool VertexIO< Real >::ReadASCII( FILE *fp , TypeOnDisk , Real &s )
@@ -167,7 +167,7 @@ namespace VertexFactory
 	template< typename Real >
 	void VertexIO< Real >::WriteBinary( FILE *fp , TypeOnDisk typeOnDisk , const Real &s )
 	{
-		if( TypeOnDisk()==typeOnDisk ) fwrite( &s , sizeof(Real) , 1 , fp );
+		if( TypeOnDisk()==typeOnDisk ) throwing_fwrite( &s , sizeof(Real) , 1 , fp );
 		switch( typeOnDisk )
 		{
 			case TypeOnDisk::CHAR:    _WriteBinary<          char >( fp , s ) ; break;
@@ -211,7 +211,7 @@ namespace VertexFactory
 	template< typename Real >
 	void VertexIO< Real >::WriteBinary( FILE *fp , TypeOnDisk typeOnDisk , size_t sz , const Real *s )
 	{
-		if( TypeOnDisk()==typeOnDisk ) fwrite( s , sizeof(Real) , sz , fp );
+		if( TypeOnDisk()==typeOnDisk ) throwing_fwrite( s , sizeof(Real) , sz , fp );
 		else for( size_t i=0 ; i<sz ; i++ ) WriteBinary( fp , typeOnDisk , s[i] );
 	}
 
@@ -461,7 +461,7 @@ namespace VertexFactory
 	template< typename Real >
 	void DynamicFactory< Real >::writeBinary( FILE *fp , const VertexType &dt ) const
 	{
-		if( _realTypeOnDisk ) fwrite( &dt[0] , sizeof(Real) , dt.dim() , fp );
+		if( _realTypeOnDisk ) throwing_fwrite( &dt[0] , sizeof(Real) , dt.dim() , fp );
 		else  for( unsigned int i=0 ; i<dt.dim() ; i++ ) VertexIO< Real >::WriteBinary( fp , _namesAndTypesOnDisk[i].second , dt[i] );
 	}
 

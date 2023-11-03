@@ -360,7 +360,7 @@ void Execute( const AuxDataFactory &auxDataFactory )
 				if( fscanf( fp , " %f " , &f )!=1 ) ERROR_OUT( "Failed to read xform" );
 				toModel(i,j) = (Real)f;
 			}
-			fclose( fp );
+			throwing_fclose( fp );
 		}
 	}
 	std::vector< typename InputSampleFactory::VertexType > inCorePoints;
@@ -493,7 +493,7 @@ void Execute( const AuxDataFactory &auxDataFactory )
 		implicit->solution.write( fs );
 		if constexpr( HasAuxData ) if( implicit->auxData ) implicit->auxData->write( fs );
 		if( implicit->density ) implicit->density->write( fs );
-		fclose( fp );
+		throwing_fclose( fp );
 	}
 
 	if( Grid.set )
